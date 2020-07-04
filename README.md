@@ -1,2 +1,1 @@
-# pycat
-From Black Hat Python
+Code from Black Hat Python
