@@ -29,6 +29,63 @@ def server_loop(local_host, local_port, remote_host, remote_port, receive_first)
         proxy_thread.start()
 
 
+def proxy_handler(cleint_socket, remote_host, remote_port, receive_first):
+
+    #connect to the remote host
+    remote_socket = socket.socket(socket.AF_INET, socket.SOCK.STREAM)
+
+    remote_socket.connect((remote_host,remote_port))
+
+    #receive data form the rmeote end if necessary
+    if receive_frist:
+        remote_buffer = response_handler(remote_buffer)
+
+    #if we have data to send to out local client,  sent it
+    if len(remote_buffer):
+         print("[<==] Sending %d bytes to localhost." % len(remote_buffer))
+         len(remote_buffer)
+         client_socket.send(remote_buffer)
+
+    #now lets loop and read from local, send to remote, and to local
+    #rinse, wash, repeat
+    while True:
+        #read from the local host
+        local_buffer = receive_from(client_socket)
+
+        if len(local_buffer):
+            print("[==>] Received %d bytes  from localhost." % len(local_buffer))
+            hexdump(local_buffer)
+
+
+            #send it to our  request handler
+            local_buffer = request_handler(local_buffer)
+            print("[==>] Sent to remote.")
+            
+        #receive back the response
+        remote_buffer = receive_from(remote_socket)
+
+        if len(remote_buffer):
+            
+            print("<==] Received %d bytes from remote." % len(remote_buffer))
+            hexdump(remote_buffer)
+
+            #send to our response handler
+            remote_buffer = response_handler(remote_buffer)
+
+            #send the repsonse to the local socket
+            cleint_socket.send(remote_buffer)
+
+            print("[<==] Sent to localhost."
+        #if no more data on either side, close the connections
+        if not len(local_buffer) or not len(remote_buffer):
+                  client_socket.close()
+                  remote_socket.close()
+                  print("[*] No more data. Closing connections.")
+
+                  break
+            
+
+
 def main():
     if len(sys.argv[1:])!=5:
         print("Usage: ./proxy.py [localhost] [localport] [remotehost] [remoteport] [receive_first]")
